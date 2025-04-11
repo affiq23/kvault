@@ -1,29 +1,23 @@
-// load tools for path resolution
 const fs = require('fs-extra');
 const path = require('path');
 const chalk = require('chalk');
 const { writeConfig } = require('../lib/config');
 
-// export async function to run when " kvault import-token <path>" is called
 module.exports = async function (tokenFilePath) {
-  
-// handle missing input path
-  if (!tokenFilePath) {
-    console.log(chalk.red('Please provide a path to the token file.'));
-    console.log(`Example: ${chalk.cyan('kvault import-token ~/Downloads/kvault-token.json')}`);
+  // use default Downloads location for v1
+  const defaultPath = path.join(require('os').homedir(), 'Downloads', 'kvault-token.json');
+  const resolvedPath = path.resolve(tokenFilePath || defaultPath);
+
+  if (!fs.existsSync(resolvedPath)) {
+    console.log(chalk.red('❌ Token file not found:'), resolvedPath);
     return;
   }
 
-// makes sure ~ or ./ paths work
-  const resolvedPath = path.resolve(tokenFilePath);
-
-    // error handling if file doesn't exist
   if (!fs.existsSync(resolvedPath)) {
     console.log(chalk.red('Token file not found:'), resolvedPath);
     return;
   }
 
-// reads and parses token file
   let tokenData;
   try {
     tokenData = await fs.readJson(resolvedPath);
@@ -32,19 +26,15 @@ module.exports = async function (tokenFilePath) {
     return;
   }
 
-  // extracts token data
   const { refresh_token, user } = tokenData;
 
-  // validates required fields are present
   if (!refresh_token || !user?.id || !user?.email) {
     console.log(chalk.red('Invalid token file. Missing required fields.'));
     return;
   }
 
-  writeConfig({
-    user,
-    refresh_token
-  });
-  console.log(chalk.green('✅ Token imported successfully!'));
+  writeConfig({ user, refresh_token });
+
+  console.log(chalk.green('Token imported successfully!'));
   console.log(`🔐 Authenticated as ${chalk.cyan(user.email)}`);
 };

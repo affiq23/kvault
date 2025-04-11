@@ -1,20 +1,15 @@
-// load tools for path resolution
 const chalk = require('chalk');
-const { supabase } = require('../lib/supabaseClient');
-const { readConfig } = require('../lib/config')
+const { ensureAuth } = require('../lib/config');
 
-module.exports = async function () {
+module.exports = function () {
   try {
-    const config = readConfig();
-    const user = config.user;
+    const { user } = ensureAuth();
 
-    if (!user) throw new Error("No user in config");
-
-    console.log('🔐 You are logged in as:');
-    console.log(`📧 Email: ${user.email}`);
-    console.log(`🆔 ID: ${user.id}`);
+    console.log(chalk.green('🔐 You are logged in as:'));
+    console.log(`Email: ${chalk.cyan(user.email)}`);
+    console.log(`ID: ${chalk.gray(user.id)}`);
   } catch (err) {
-    console.log('❌ Failed to authenticate.');
+    console.error('Failed to authenticate.');
     console.error(err.message);
   }
 };
