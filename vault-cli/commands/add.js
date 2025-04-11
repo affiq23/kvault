@@ -5,11 +5,11 @@ const path = require('path');
 const slugify = require('slugify'); // npm install slugify
 const { formatISO } = require('date-fns'); // npm install date-fns
 
-const NOTES_DIR = path.resolve(process.cwd(), '.vault/notes');
+const { notesPath } = require('../lib/config');
 
 // Ensure notes folder exists
-if (!fs.existsSync(NOTES_DIR)) {
-  fs.mkdirSync(NOTES_DIR, { recursive: true });
+if (!fs.existsSync(notesPath)) {
+  fs.mkdirSync(notesPath, { recursive: true });
 }
 
 // Helper: sanitize file name
@@ -23,7 +23,7 @@ function slugFromTitle(title) {
 function createNote(titleWords) {
   const title = Array.isArray(titleWords) ? titleWords.join(' ') : titleWords;
   const filename = slugFromTitle(title);
-  const filepath = path.join(NOTES_DIR, filename);
+  const filepath = path.join(notesPath, filename);
 
   if (fs.existsSync(filepath)) {
     console.error(`❌ Note "${title}" already exists.`);

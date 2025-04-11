@@ -4,7 +4,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const configPath = path.resolve(process.cwd(), '.vault/config.json');
+const { configPath } = require('../lib/config');
+
 
 module.exports = function logout() {
   if (fs.existsSync(configPath)) {

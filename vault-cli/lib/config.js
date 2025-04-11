@@ -1,9 +1,7 @@
-const fs = require('fs');
 const path = require('path');
+const fs = require('fs');
 
-// Always anchor .vault to the project root (two levels up from /lib)
-const projectRoot = path.resolve(__dirname, '../../');
-const vaultPath = path.join(projectRoot, '.vault');
+const vaultPath = path.resolve(__dirname, '../.vault'); // ✅ always anchored to vault-cli/.vault
 const configPath = path.join(vaultPath, 'config.json');
 const notesPath = path.join(vaultPath, 'notes');
 
@@ -35,5 +33,5 @@ module.exports = {
   deleteConfig,
   vaultPath,
   configPath,
-  notesPath
+  notesPath,
 };
