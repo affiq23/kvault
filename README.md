@@ -56,6 +56,7 @@ stores your refresh token and user info in `.vault/config.json`.
 
 - fixed hugeeee error with`kvault init` requiring auth when it shouldn't — resolved by using lazy imports in `index.js`
 - fixed early auth triggers caused by eager `require()` statements
+- still getting some weird issues with the config file in .vault/; keeps pushing to github even while in gitignore
 
 ---
 
