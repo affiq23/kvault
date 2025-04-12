@@ -41,4 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 # kvault CLI
-.vault/  # local storage for notes + config
+.vault/
+**/.vault/

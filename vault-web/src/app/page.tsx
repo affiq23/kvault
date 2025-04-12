@@ -1,146 +1,204 @@
-'use client';
+// vault-web/src/components/NoteEditor.tsx
 
-import { useEffect, useState } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+"use client";
 
-export default function HomePage() {
-  const [user, setUser] = useState<any>(null);
-  const [session, setSession] = useState<any>(null);
+import React, { useState, useEffect } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { supabase } from "../../lib/supabaseClient";
+
+interface Note {
+  id: string;
+  title: string;
+  content: string;
+  branch: string;
+  created_at: string;
+}
+
+const NoteEditor: React.FC = () => {
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [previewMode, setPreviewMode] = useState(false);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
+
+  const fetchNotes = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from("notes")
+      .select("id, title, content, branch, created_at")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching notes:", error.message);
+    } else {
+      setNotes(data as Note[]);
+    }
+  };
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setUser(data.session?.user ?? null);
-      setSession(data.session ?? null);
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setSession(session ?? null);
-    });
-
-    return () => subscription.unsubscribe();
+    fetchNotes();
   }, []);
 
-  const handleLogin = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        queryParams: {
-          prompt: 'select_account',
-        },
-      },
-    });
-    
-  };
+  const handleSave = async () => {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    alert("You've been logged out of the web app. Run `kvault logout` to log out the CLI too.");
-    setUser(null);
-    setSession(null);
-  };
-  const handleExportToken = async () => {
-    if (!session) {
-      console.error('No session available');
+    if (userError || !user) {
+      alert("Not authenticated");
       return;
     }
 
-    const token = {
-      refresh_token: session.refresh_token,
-      user: {
-        id: session.user.id,
-        email: session.user.email,
-      },
-    };
+    if (selectedNoteId) {
+      const { error } = await supabase
+        .from("notes")
+        .update({ title, content, updated_at: new Date().toISOString() })
+        .eq("id", selectedNoteId);
 
-    const blob = new Blob([JSON.stringify(token, null, 2)], {
-      type: 'application/json',
-    });
+      if (error) {
+        console.error("Update failed:", error.message);
+        alert("Update failed. Check console.");
+      } else {
+        alert("✅ Note updated!");
+        fetchNotes();
+      }
+    } else {
+      const { error } = await supabase.from("notes").insert([
+        {
+          title,
+          content,
+          branch: "main",
+          user_id: user.id,
+        },
+      ]);
 
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'kvault-token.json';
-    a.click();
-    URL.revokeObjectURL(url);
+      if (error) {
+        console.error("Save failed:", error.message);
+        alert("Save failed. Check console.");
+      } else {
+        setPreviewMode(true);
+        alert("✅ Note saved to Supabase!");
+        fetchNotes();
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!selectedNoteId) return;
+    const { error } = await supabase.from("notes").delete().eq("id", selectedNoteId);
+    if (error) {
+      console.error("Delete failed:", error.message);
+      alert("Delete failed.");
+    } else {
+      setTitle("");
+      setContent("");
+      setSelectedNoteId(null);
+      setPreviewMode(false);
+      alert("🗑️ Note deleted.");
+      fetchNotes();
+    }
+  };
+
+  const handleNoteSelect = (note: Note) => {
+    setSelectedNoteId(note.id);
+    setTitle(note.title);
+    setContent(note.content);
+    setPreviewMode(false);
+  };
+
+  const handleNewNote = () => {
+    setSelectedNoteId(null);
+    setTitle("");
+    setContent("");
+    setPreviewMode(false);
   };
 
   return (
-    <main
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        minHeight: '100vh',
-        padding: '2rem',
-        backgroundColor: '#f9f9f9',
-        fontFamily: "'JetBrains Mono', monospace",
-      }}
-    >
-      <div
-        style={{
-          background: '#fff',
-          padding: '2rem',
-          borderRadius: '10px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-          maxWidth: '500px',
-          width: '100%',
-          textAlign: 'center',
-        }}
-      >
-        <h1 style={{ marginBottom: '1.5rem', color: '#333' }}>
-          {user ? `welcome, ${user.email}` : 'welcome to kvault'}
-        </h1>
-
-        {!user ? (
+    <div className="flex h-screen">
+      <aside className="w-64 bg-neutral-900 text-white p-4 border-r border-neutral-700">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">My Notes</h2>
           <button
-            onClick={handleLogin}
-            style={{
-              padding: '0.75rem 1.5rem',
-              fontSize: '1rem',
-              backgroundColor: '#0070f3',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '6px',
-              cursor: 'pointer',
-            }}
+            onClick={handleNewNote}
+            className="text-sm text-blue-400 underline hover:text-blue-600"
           >
-            login with Google
+            + New
           </button>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <button
-              onClick={handleExportToken}
-              style={{
-                padding: '0.75rem',
-                backgroundColor: '#111',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-              }}
+        </div>
+        <ul className="space-y-2">
+          {notes.map((note) => (
+            <li
+              key={note.id}
+              onClick={() => handleNoteSelect(note)}
+              className={`cursor-pointer p-2 rounded hover:bg-neutral-800 ${
+                selectedNoteId === note.id ? "bg-neutral-800" : ""
+              }`}
             >
-              export CLI token
-            </button>
+              {note.title || "Untitled"}
+            </li>
+          ))}
+        </ul>
+      </aside>
+
+      <main className="flex-1 p-8 bg-neutral-950 text-white">
+        <div className="flex flex-col gap-4">
+          <input
+            className="text-2xl font-bold bg-transparent border-b border-neutral-700 focus:outline-none px-2 py-1"
+            type="text"
+            placeholder="Untitled"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+
+          {!previewMode ? (
+            <textarea
+              className="w-full min-h-[400px] bg-neutral-900 border border-neutral-700 rounded p-4 font-mono text-base focus:outline-none focus:ring-2 focus:ring-blue-600"
+              placeholder="Write your markdown here..."
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+            />
+          ) : (
+            <div className="prose prose-invert bg-neutral-900 p-4 rounded max-w-none border border-neutral-700">
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            </div>
+          )}
+
+          <div className="flex gap-2">
             <button
-              onClick={handleLogout}
-              style={{
-                padding: '0.75rem',
-                backgroundColor: '#e00',
-                color: '#fff',
-                border: 'none',
-                borderRadius: '6px',
-                cursor: 'pointer',
-              }}
+              onClick={handleSave}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             >
-              logout
+              {selectedNoteId ? "Update" : "Save"}
             </button>
+            {selectedNoteId && (
+              <button
+                onClick={handleDelete}
+                className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+              >
+                Delete
+              </button>
+            )}
+            {previewMode && (
+              <button
+                onClick={() => setPreviewMode(false)}
+                className="text-sm text-neutral-400 underline hover:text-white"
+              >
+                Edit again
+              </button>
+            )}
           </div>
-        )}
-      </div>
-    </main>
+        </div>
+      </main>
+    </div>
   );
-}
+};
+
+export default NoteEditor;
