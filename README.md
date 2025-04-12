@@ -52,6 +52,14 @@ stores your refresh token and user info in `.vault/config.json`.
 - fixed issue where `.env.local` wasn't loading in `vault-web`
 - CLI now reads `.env` regardless of CWD, preventing token/URL missing errors
 
+### 4-11-2025
+- full Google OAuth login (via Supabase)
+- export CLI Token button works and downloads correctly
+- UI for note creation, editing, saving, deleting
+- all notes stored in Supabase
+- logout + login
+- real-time UI refresh after save/delete
+
 #### fixes
 
 - fixed hugeeee error with`kvault init` requiring auth when it shouldn't — resolved by using lazy imports in `index.js`

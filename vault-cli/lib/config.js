@@ -44,7 +44,7 @@ const ensureAuth = () => {
   const config = readConfig();
 
   if (!config?.user || !config?.refresh_token) {
-    console.error('You must be logged in to run this command.');
+    console.error('You must be logged in to run this command. Try running import-token and checking if you have your token dowloaded.');
     process.exit(1);
   }
 

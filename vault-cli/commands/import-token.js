@@ -9,7 +9,7 @@ module.exports = async function (tokenFilePath) {
   const resolvedPath = path.resolve(tokenFilePath || defaultPath);
 
   if (!fs.existsSync(resolvedPath)) {
-    console.log(chalk.red('❌ Token file not found:'), resolvedPath);
+    console.log(chalk.red('Token file not found:'), resolvedPath);
     return;
   }
 
