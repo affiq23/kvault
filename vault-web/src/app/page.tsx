@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { saveNote, deleteNote } from "../../lib/noteActions";
-import NoteEditor from "../components/NoteEditor";
+// wil use later, not working; need to comment to deploy: import NoteEditor from "../components/NoteEditor";
 
 interface Note {
   id: string;
