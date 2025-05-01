@@ -1,13 +1,23 @@
 {
-  "name": "vault-cli",
-  "version": "1.0.0",
+  "name": "@affiq/kvault-cli",
+  "version": "1.0.1",
+  "description": "Command-line tool for kvault – a version-controlled knowledge vault system",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "bin": {
+    "kvault": "bin/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "scripts": {
+    "test": "echo \"No test specified\" && exit 1"
+  },
+  "keywords": [
+    "cli",
+    "knowledge",
+    "version-control",
+    "kvault"
+  ],
+  "author": "Affiq Mohammed",
+  "license": "MIT",
+  "type": "commonjs",
   "dependencies": {
     "@supabase/supabase-js": "^2.49.4",
     "chalk": "^4.1.2",
@@ -16,9 +26,5 @@
     "dotenv": "^16.5.0",
     "fs-extra": "^11.3.0",
     "slugify": "^1.6.6"
-  },
-  "bin": {
-    "kvault": "bin/index.js"
-  },
-  "description": ""
+  }
 }
