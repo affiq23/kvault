@@ -23,8 +23,16 @@ creates a `.vault` folder in current directory with config file and notes direct
 2. download CLI token from the "Export CLI Token" button
 3. run:
 ```bash
-kvault import-token path/to/token.json
+kvault import-token 
 ```
+(will automatically search /Downloads)
+
+```bash
+/Users/affiq/token.json
+```
+(to specify path in cases other than Downloads)
+
+
 stores your refresh token and user info in `.vault/config.json`.
 
 ---
