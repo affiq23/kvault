@@ -32,6 +32,11 @@ kvault import-token path/to/token.json
 ```
 stores your refresh token and user info in `.vault/config.json`.
 
+## also accesible from npm now
+```bash
+https://www.npmjs.com/package/@affiq/kvault-cli
+```
+
 ---
 
 ## changelog
