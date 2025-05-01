@@ -55,7 +55,12 @@ export default function Page() {
     if (!user) return;
 
     try {
-      await saveNote(user.id, newTitle, newContent, selectedNoteId ?? undefined); 
+      await saveNote(
+        user.id,
+        newTitle,
+        newContent,
+        selectedNoteId ?? undefined
+      );
       setTitle("");
       setContent("");
       setSelectedNoteId(null);
@@ -96,10 +101,9 @@ export default function Page() {
         },
       },
     });
-  
+
     if (error) alert("Login failed: " + error.message);
   };
-  
 
   const handleExport = async () => {
     const session = (await supabase.auth.getSession()).data.session;
@@ -160,6 +164,14 @@ export default function Page() {
       <header className="bg-neutral-900 text-white px-6 py-3 border-b border-neutral-800 flex justify-between items-center">
         <span className="text-sm">{`welcome, ${userEmail}`}</span>
         <div className="flex gap-2">
+          <a
+            href="https://www.npmjs.com/package/@affiq/kvault-cli"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="bg-neutral-800 text-white px-3 py-1 text-sm rounded hover:bg-neutral-700 flex items-center"
+          >
+            CLI on npm
+          </a>
           <button
             onClick={handleExport}
             className="bg-black text-white px-3 py-1 text-sm rounded hover:bg-neutral-800"
@@ -174,7 +186,6 @@ export default function Page() {
           </button>
         </div>
       </header>
-
       <div className="flex flex-1">
         <aside className="w-64 bg-neutral-900 text-white p-4 border-r border-neutral-700">
           <div className="flex items-center justify-between mb-4">
