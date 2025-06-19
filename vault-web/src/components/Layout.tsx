@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState } from "react";
+import Link from "next/link";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,15 +9,21 @@ interface LayoutProps {
   onExport: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, userEmail, userName, onLogout, onExport }) => {
+const Layout: React.FC<LayoutProps> = ({
+  children,
+  userEmail,
+  userName,
+  onLogout,
+  onExport,
+}) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-300 font-mono">
       <header className="flex justify-between items-center bg-gray-850 px-6 py-3 shadow-md border-b border-gray-700">
-        <span className="text-sm tracking-wide">{`welcome, ${
+        <span className="text-sm tracking-wide">{`Welcome, ${
           userName?.split(" ")[0] || userEmail
-        }`}</span>
+        }!`}</span>
         <div className="flex gap-3">
           <a
             href="https://www.npmjs.com/package/@affiq/kvault-cli"
@@ -44,47 +50,94 @@ const Layout: React.FC<LayoutProps> = ({ children, userEmail, userName, onLogout
 
       <div className="flex flex-1 overflow-hidden relative">
         <aside
-          className={`bg-gray-850 p-4 border-r border-gray-700 overflow-y-auto transition-width duration-300 ease-in-out ${
+          className={`bg-gray-850 p-4 border-r border-gray-700 overflow-y-auto transition-width duration-300 ease-in-out flex flex-col ${
             sidebarCollapsed ? "w-16" : "w-64"
-          } flex flex-col`}
+          }`}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h2
-              className={`font-semibold tracking-wide text-lg select-none ${
-                sidebarCollapsed ? "hidden" : "block"
-              }`}
-            >
-              navigation
-            </h2>
+          {/* Header with toggle button */}
+          <div
+            className={`flex items-center justify-between mb-4 ${
+              sidebarCollapsed ? "h-full justify-center" : ""
+            }`}
+            style={{ height: sidebarCollapsed ? "64px" : "auto" }} // fix height when collapsed
+          >
+          
             <button
               onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-              aria-label={sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-              className="p-1 rounded hover:bg-gray-700 transition"
+              aria-label={
+                sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+              }
+              className="p-1 rounded hover:bg-gray-700 transition flex items-center justify-center"
+              style={{ width: 32, height: 32 }}
             >
               {sidebarCollapsed ? (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               ) : (
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
               )}
             </button>
           </div>
-          <nav className="space-y-2">
-            <Link href="/" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition">
-              Dashboard
-            </Link>
-            <Link href="/notes" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition">
-              Notes
-            </Link>
-            <Link href="/upload" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition">
-              Upload & Summarize
-            </Link>
-            <Link href="/flashcards" className="block px-3 py-2 rounded-md hover:bg-gray-700 transition">
-              Flashcards
-            </Link>
+
+          {/* Navigation links */}
+          <nav
+            className={`space-y-2 flex-1 ${
+              sidebarCollapsed ? "pointer-events-none" : "pointer-events-auto"
+            }`}
+          >
+            {!sidebarCollapsed && (
+              <>
+                <Link
+                  href="/"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-700 transition"
+                >
+                  Dashboard
+                </Link>
+                <Link
+                  href="/notes"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-700 transition"
+                >
+                  Notes
+                </Link>
+                <Link
+                  href="/upload"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-700 transition"
+                >
+                  Upload & Summarize
+                </Link>
+                <Link
+                  href="/flashcards"
+                  className="block px-3 py-2 rounded-md hover:bg-gray-700 transition"
+                >
+                  Flashcards
+                </Link>
+              </>
+            )}
           </nav>
         </aside>
 

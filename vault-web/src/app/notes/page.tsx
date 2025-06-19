@@ -116,9 +116,9 @@ export default function NotesPage() {
       onLogout={handleLogout}
       onExport={handleExport}
     >
-      <div className="flex h-full gap-4">
+      <div className="flex h-full gap-4 relative">
         {/* Main Editor / Viewer */}
-        <main className="flex-1 p-6 bg-gray-900 rounded-lg shadow-inner overflow-auto">
+        <main className="flex-1 p-6 bg-gray-900 rounded-lg shadow-inner overflow-auto relative">
           <div className="flex flex-col gap-6 max-w-4xl mx-auto">
             {isEditing ? (
               <>
@@ -198,11 +198,24 @@ export default function NotesPage() {
                 </div>
               </>
             ) : (
-              <p className="text-gray-400 italic">
+              <h4 className="text-xl text-gray-400 italic">
                 Select a note to view or create a new one.
-              </p>
+              </h4>
             )}
           </div>
+
+          {/* + Circle New Button inside the editor, bottom right */}
+          <button
+            onClick={() => {
+              handleNewNote();
+              setIsEditing(true);
+            }}
+            aria-label="Create new note"
+            className="absolute bottom-6 right-6 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-full w-16 h-16 flex items-center justify-center text-4xl shadow-lg transition-transform duration-200 hover:scale-110 focus:outline-none"
+            title="Create new note"
+          >
+            +
+          </button>
         </main>
 
         {/* Notes List (RIGHT sidebar) */}
@@ -227,18 +240,6 @@ export default function NotesPage() {
               </li>
             ))}
           </ul>
-
-          {/* + Circle New Button */}
-          <button
-            onClick={() => {
-              handleNewNote();
-              setIsEditing(true);
-            }}
-            aria-label="Create new note"
-            className="fixed bottom-8 right-8 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-full p-4 text-3xl shadow-lg flex items-center justify-center"
-          >
-            +
-          </button>
         </aside>
       </div>
     </Layout>
