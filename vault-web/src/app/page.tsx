@@ -19,6 +19,8 @@ export default function Page() {
   const [content, setContent] = useState("");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState<string | null>(null);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   const fetchNotes = async () => {
     const {
@@ -29,8 +31,10 @@ export default function Page() {
       setLoading(false);
       return;
     }
-
+    const fullName =
+      user.user_metadata?.full_name || user.user_metadata?.name || null;
     setUserEmail(user.email ?? null);
+    setUserName(fullName);
 
     const { data, error } = await supabase
       .from("notes")
@@ -152,10 +156,12 @@ export default function Page() {
   if (!userEmail) {
     return (
       <div className="h-screen flex flex-col items-center justify-center bg-gray-900 text-gray-300 font-mono">
-        <h1 className="text-4xl mb-6 tracking-wide font-semibold">welcome to kvault</h1>
+        <h1 className="text-4xl mb-6 tracking-wide font-semibold">
+          welcome to kvault
+        </h1>
         <button
           onClick={handleLogin}
-          className="bg-gray-300 text-gray-100 px-8 py-3 rounded-full font-semibold hover:bg-gray-600 transition"
+          className="bg-gray-300 text-gray-900 px-8 py-3 rounded-full font-semibold hover:bg-gray-600 transition"
         >
           sign in
         </button>
@@ -166,7 +172,9 @@ export default function Page() {
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-300 font-mono">
       <header className="flex justify-between items-center bg-gray-850 px-6 py-3 shadow-md border-b border-gray-700">
-        <span className="text-sm tracking-wide">welcome, {userEmail}</span>
+        <span className="text-sm tracking-wide">{`welcome, ${
+          userName?.split(" ")[0] || userEmail
+        }`}</span>
         <div className="flex gap-3">
           <a
             href="https://www.npmjs.com/package/@affiq/kvault-cli"
@@ -190,41 +198,101 @@ export default function Page() {
           </button>
         </div>
       </header>
-      <div className="flex flex-1 overflow-hidden">
-        <aside className="w-64 bg-gray-850 p-4 border-r border-gray-700 overflow-y-auto">
+
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Sidebar */}
+        <aside
+          className={`bg-gray-850 p-4 border-r border-gray-700 overflow-y-auto transition-width duration-300 ease-in-out ${
+            sidebarCollapsed ? "w-16" : "w-64"
+          } flex flex-col`}
+        >
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold tracking-wide">my notes</h2>
-            <button
-              onClick={handleNewNote}
-              className="text-sm text-yellow-400 underline hover:text-yellow-500 transition"
+            <h2
+              className={`font-semibold tracking-wide text-lg select-none ${
+                sidebarCollapsed ? "hidden" : "block"
+              }`}
             >
-              + New
+              my notes
+            </h2>
+            {/* Chevron toggle */}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              aria-label={
+                sidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"
+              }
+              className="p-1 rounded hover:bg-gray-700 transition"
+            >
+              {sidebarCollapsed ? (
+                // Right pointing chevron (expand)
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              ) : (
+                // Left pointing chevron (collapse)
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              )}
             </button>
           </div>
-          <ul className="space-y-2">
-            {notes.map((note) => (
-              <li
-                key={note.id}
-                className={`cursor-pointer rounded-md px-3 py-2 transition ${
-                  selectedNoteId === note.id
-                    ? "bg-gray-700 text-gray-100 font-semibold"
-                    : "hover:bg-gray-700 text-gray-300"
-                }`}
-                onClick={() => handleSelectNote(note)}
-                title={note.title || "untitled"}
-              >
-                {note.title || "untitled"}
-              </li>
-            ))}
+          <ul className="space-y-2 flex-1 overflow-y-auto">
+            {!sidebarCollapsed &&
+              notes.map((note) => (
+                <li
+                  key={note.id}
+                  className={`cursor-pointer rounded-md px-3 py-2 transition select-none ${
+                    selectedNoteId === note.id
+                      ? "bg-gray-700 text-gray-100 font-semibold"
+                      : "hover:bg-gray-700 text-gray-300"
+                  }`}
+                  onClick={() => handleSelectNote(note)}
+                  title={note.title || "Note title..."}
+                >
+                  {note.title || "Note title..."}
+                </li>
+              ))}
           </ul>
         </aside>
 
+        {/* Floating +New button */}
+        <button
+          onClick={handleNewNote}
+          aria-label="Create new note"
+          className="fixed bottom-6 right-6 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-full w-14 h-14 flex items-center justify-center text-3xl font-bold shadow-lg transition focus:outline-none focus:ring-4 focus:ring-yellow-400"
+          title="New Note"
+        >
+          +
+        </button>
+
+        {/* Main editor */}
         <main className="flex-1 p-6 overflow-auto bg-gray-900 rounded-r-lg">
           <div className="flex flex-col gap-4 max-w-4xl mx-auto">
             <input
               className="text-3xl font-bold bg-transparent border-b border-gray-300 focus:outline-none px-2 py-1 tracking-wide placeholder-gray-500 text-gray-100"
               type="text"
-              placeholder="untitled"
+              placeholder="Note title..."
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
