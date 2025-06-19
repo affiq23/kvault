@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "../../lib/supabaseClient";
 import { saveNote, deleteNote } from "../../lib/noteActions";
-// wil use later, not working; need to comment to deploy: import NoteEditor from "../components/NoteEditor";
 
 interface Note {
   id: string;
@@ -96,8 +95,9 @@ export default function Page() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
+        redirectTo: window.location.origin,
         queryParams: {
-          prompt: "select_account", // forces account picker every time
+          prompt: "select_account",
         },
       },
     });
@@ -142,16 +142,20 @@ export default function Page() {
   };
 
   if (loading) {
-    return <div className="text-white p-8">Loading...</div>;
+    return (
+      <div className="text-gray-300 bg-gray-900 p-8 h-screen flex items-center justify-center font-mono">
+        Loading...
+      </div>
+    );
   }
 
   if (!userEmail) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center bg-black text-white">
-        <h1 className="text-3xl mb-4">welcome to kvault</h1>
+      <div className="h-screen flex flex-col items-center justify-center bg-gray-900 text-gray-300 font-mono">
+        <h1 className="text-4xl mb-6 tracking-wide font-semibold">welcome to kvault</h1>
         <button
           onClick={handleLogin}
-          className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          className="bg-gray-300 text-gray-100 px-8 py-3 rounded-full font-semibold hover:bg-gray-600 transition"
         >
           sign in
         </button>
@@ -160,39 +164,39 @@ export default function Page() {
   }
 
   return (
-    <div className="flex flex-col h-screen">
-      <header className="bg-neutral-900 text-white px-6 py-3 border-b border-neutral-800 flex justify-between items-center">
-        <span className="text-sm">{`welcome, ${userEmail}`}</span>
-        <div className="flex gap-2">
+    <div className="flex flex-col h-screen bg-gray-900 text-gray-300 font-mono">
+      <header className="flex justify-between items-center bg-gray-850 px-6 py-3 shadow-md border-b border-gray-700">
+        <span className="text-sm tracking-wide">welcome, {userEmail}</span>
+        <div className="flex gap-3">
           <a
             href="https://www.npmjs.com/package/@affiq/kvault-cli"
             target="_blank"
             rel="noopener noreferrer"
-            className="bg-neutral-800 text-white px-3 py-1 text-sm rounded hover:bg-neutral-700 flex items-center"
+            className="px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600 transition text-sm text-gray-200"
           >
-            CLI on npm
+            command line on npm
           </a>
           <button
             onClick={handleExport}
-            className="bg-black text-white px-3 py-1 text-sm rounded hover:bg-neutral-800"
+            className="px-3 py-1 rounded-md bg-gray-700 hover:bg-gray-600 transition text-sm text-gray-200"
           >
             export CLI token
           </button>
           <button
             onClick={handleLogout}
-            className="bg-red-600 text-white px-3 py-1 text-sm rounded hover:bg-red-700"
+            className="px-3 py-1 rounded-md bg-red-700 hover:bg-red-800 transition text-sm text-gray-200"
           >
             logout
           </button>
         </div>
       </header>
-      <div className="flex flex-1">
-        <aside className="w-64 bg-neutral-900 text-white p-4 border-r border-neutral-700">
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="w-64 bg-gray-850 p-4 border-r border-gray-700 overflow-y-auto">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl font-semibold">my notes</h2>
+            <h2 className="text-xl font-semibold tracking-wide">my notes</h2>
             <button
               onClick={handleNewNote}
-              className="text-sm text-blue-400 underline hover:text-blue-600"
+              className="text-sm text-yellow-400 underline hover:text-yellow-500 transition"
             >
               + New
             </button>
@@ -201,10 +205,13 @@ export default function Page() {
             {notes.map((note) => (
               <li
                 key={note.id}
-                className={`p-2 rounded cursor-pointer hover:bg-neutral-800 ${
-                  selectedNoteId === note.id ? "bg-neutral-800" : ""
+                className={`cursor-pointer rounded-md px-3 py-2 transition ${
+                  selectedNoteId === note.id
+                    ? "bg-gray-700 text-gray-100 font-semibold"
+                    : "hover:bg-gray-700 text-gray-300"
                 }`}
                 onClick={() => handleSelectNote(note)}
+                title={note.title || "untitled"}
               >
                 {note.title || "untitled"}
               </li>
@@ -212,32 +219,32 @@ export default function Page() {
           </ul>
         </aside>
 
-        <main className="flex-1 p-6 bg-neutral-950 text-white">
-          <div className="flex flex-col gap-4">
+        <main className="flex-1 p-6 overflow-auto bg-gray-900 rounded-r-lg">
+          <div className="flex flex-col gap-4 max-w-4xl mx-auto">
             <input
-              className="text-2xl font-bold bg-transparent border-b border-neutral-700 focus:outline-none px-2 py-1"
+              className="text-3xl font-bold bg-transparent border-b border-gray-300 focus:outline-none px-2 py-1 tracking-wide placeholder-gray-500 text-gray-100"
               type="text"
               placeholder="untitled"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
             <textarea
-              className="w-full min-h-[400px] bg-neutral-900 border border-neutral-700 rounded p-4 font-mono text-base focus:outline-none focus:ring-2 focus:ring-blue-600"
+              className="w-full min-h-[400px] bg-gray-850 border border-gray-300 rounded-lg p-4 font-mono text-base text-gray-200 focus:outline-none focus:ring-2 focus:ring-yellow-500 transition"
               placeholder="start typing here..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
             />
-            <div className="flex gap-2">
+            <div className="flex gap-4">
               <button
                 onClick={() => handleSave(title, content)}
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                className="bg-gray-700 hover:bg-gray-600 text-gray-100 px-6 py-2 rounded-full font-semibold transition"
               >
                 {selectedNoteId ? "update" : "save"}
               </button>
               {selectedNoteId && (
                 <button
                   onClick={() => handleDelete(selectedNoteId)}
-                  className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                  className="bg-red-700 hover:bg-red-800 text-gray-100 px-6 py-2 rounded-full font-semibold transition"
                 >
                   delete
                 </button>
