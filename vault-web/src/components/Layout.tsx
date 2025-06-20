@@ -21,7 +21,7 @@ const Layout: React.FC<LayoutProps> = ({
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-300 font-mono">
       <header className="flex justify-between items-center bg-gray-850 px-6 py-3 shadow-md border-b border-gray-700">
-        <span className="text-sm tracking-wide">{`Welcome, ${
+        <span className="text-xl font-bold tracking-wide">{`Welcome, ${
           userName?.split(" ")[0] || userEmail
         }!`}</span>
         <div className="flex gap-3">

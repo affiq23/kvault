@@ -87,7 +87,7 @@ export default function Page() {
   return (
     <Layout userEmail={userEmail} userName={userName} onLogout={handleLogout} onExport={handleExport}>
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <h4 className="text-xl mb-6 italic">Welcome to your dashboard. Use the sidebar to navigate to different features.</h4>
+      <h4 className="text-xl mb-6">Welcome to your dashboard. Use the sidebar to navigate to different features.</h4>
     </Layout>
   );
 }

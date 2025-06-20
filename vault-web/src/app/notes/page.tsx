@@ -6,6 +6,7 @@ import { saveNote, deleteNote } from "../../../lib/noteActions";
 import Layout from "@/components/Layout";
 import ReactMarkdown from "react-markdown";
 
+
 type Note = {
   id: string;
   title: string;
@@ -143,7 +144,7 @@ export default function NotesPage() {
                       handleSave();
                       setIsEditing(false);
                     }}
-                    className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded-full text-white transition-colors"
+                    className="px-3 py-1 rounded-md bg-green-500 hover:bg-green-800 transition text-sm text-gray-200"
                   >
                     {selectedNoteId ? "Update" : "Save"}
                   </button>
@@ -162,15 +163,15 @@ export default function NotesPage() {
                       }
                       setIsEditing(false);
                     }}
-                    className="bg-gray-600 hover:bg-gray-700 px-6 py-2 rounded-full text-white transition-colors"
+                   className="px-3 py-1 rounded-md bg-gray-500 hover:bg-gray-800 transition text-sm text-gray-200"
                   >
                     Cancel
                   </button>
                   {selectedNoteId && (
                     <button
                       onClick={handleDelete}
-                      className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-full text-white transition-colors"
-                    >
+                      className="px-3 py-1 rounded-md bg-red-700 hover:bg-red-900 transition text-sm text-gray-200"
+                  >
                       Delete
                     </button>
                   )}
@@ -185,14 +186,14 @@ export default function NotesPage() {
                 <div className="pt-4 flex gap-4">
                   <button
                     onClick={() => setIsEditing(true)}
-                    className="bg-yellow-600 hover:bg-yellow-700 px-6 py-2 rounded-full text-white transition-colors"
+                    className="px-3 py-1 rounded-md bg-blue-500 hover:bg-blue-800 transition text-sm text-gray-200"
                   >
                     Edit
                   </button>
                   <button
                     onClick={handleDelete}
-                    className="bg-red-600 hover:bg-red-700 px-6 py-2 rounded-full text-white transition-colors"
-                  >
+                    className="px-3 py-1 rounded-md bg-red-700 hover:bg-red-900 transition text-sm text-gray-200"
+          >
                     Delete
                   </button>
                 </div>
@@ -203,44 +204,45 @@ export default function NotesPage() {
               </h4>
             )}
           </div>
-
-          {/* + Circle New Button inside the editor, bottom right */}
-          <button
-            onClick={() => {
-              handleNewNote();
-              setIsEditing(true);
-            }}
-            aria-label="Create new note"
-            className="absolute bottom-6 right-6 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-full w-16 h-16 flex items-center justify-center text-4xl shadow-lg transition-transform duration-200 hover:scale-110 focus:outline-none"
-            title="Create new note"
-          >
-            +
-          </button>
         </main>
 
         {/* Notes List (RIGHT sidebar) */}
         <aside className="w-64 bg-gray-850 p-4 border-l border-gray-700 rounded-l-lg overflow-y-auto">
-          <h2 className="font-bold text-lg mb-4">My Notes</h2>
-          <ul className="space-y-2">
-            {notes.map((note) => (
-              <li
-                key={note.id}
-                onClick={() => {
-                  handleSelectNote(note);
-                  setIsEditing(false);
-                }}
-                className={`px-3 py-2 rounded cursor-pointer truncate
-                             ${
-                               selectedNoteId === note.id
-                                 ? "bg-gray-700 text-gray-100"
-                                 : "hover:bg-gray-700 text-gray-300"
-                             }`}
-              >
-                {note.title || "Untitled"}
-              </li>
-            ))}
-          </ul>
-        </aside>
+  <div className="flex items-center justify-between mb-4">
+    <h2 className="font-bold text-lg">My Notes</h2>
+    <button
+      onClick={() => {
+        handleNewNote();
+        setIsEditing(true);
+      }}
+      className="px-3 py-1 rounded-md bg-yellow-500 hover:bg-yellow-600 transition text-sm text-gray-900"
+      title="Create new note"
+      aria-label="Create new note"
+    >
+      New
+    </button>
+  </div>
+  <ul className="space-y-2">
+    {notes.map((note) => (
+      <li
+        key={note.id}
+        onClick={() => {
+          handleSelectNote(note);
+          setIsEditing(false);
+        }}
+        className={`px-3 py-2 rounded cursor-pointer truncate
+                  ${
+                    selectedNoteId === note.id
+                      ? "bg-gray-700 text-gray-100"
+                      : "hover:bg-gray-700 text-gray-300"
+                  }`}
+      >
+        {note.title || "Untitled"}
+      </li>
+    ))}
+  </ul>
+</aside>
+
       </div>
     </Layout>
   );
