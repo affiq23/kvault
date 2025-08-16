@@ -1,16 +1,21 @@
 // vault-web/src/lib/noteActions.ts
 import { supabase } from "./supabaseClient";
 
+// handles both insert/update functions for either existing or new notes
+// called from notes/page.tsx 
+// if editing existing note -> updates
+// if creating new note -> inserts
+// after save -> frontend fetches notes again to refresh sidebar
 export const saveNote = async (
   userId: string,
   title: string,
   content: string,
   noteId?: string
 ): Promise<void> => {
-  if (noteId) {
+  if (noteId) { // if note exists, check row in Supabase to update row with matching ID
     const { error } = await supabase
       .from("notes")
-      .update({
+      .update({ // update attributes
         title,
         content,
         updated_at: new Date().toISOString(),
@@ -18,7 +23,7 @@ export const saveNote = async (
       .eq("id", noteId);
 
     if (error) throw new Error("Failed to update note: " + error.message);
-  } else {
+  } else { // if saving new note
     const { error } = await supabase.from("notes").insert([
       {
         title,

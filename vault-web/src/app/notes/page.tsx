@@ -6,7 +6,6 @@ import { saveNote, deleteNote } from "../../../lib/noteActions";
 import Layout from "@/components/Layout";
 import ReactMarkdown from "react-markdown";
 
-
 type Note = {
   id: string;
   title: string;
@@ -16,30 +15,32 @@ type Note = {
 };
 
 export default function NotesPage() {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
-  const [title, setTitle] = useState("");
+  const [notes, setNotes] = useState<Note[]>([]); // all notes for current user
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null); // currently viewed/edited note 
+  const [title, setTitle] = useState(""); // inputs for note editor
   const [content, setContent] = useState("");
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null); // pulled from Supabase auth
   const [userName, setUserName] = useState<string | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // show editor or read only view
 
+  // fetch user
   useEffect(() => {
     const init = async () => {
       const {
         data: { user },
-      } = await supabase.auth.getUser();
+      } = await supabase.auth.getUser(); // grab from Supabase
       if (user) {
-        setUserEmail(user.email ?? null);
+        setUserEmail(user.email ?? null); // set
         setUserName(
           user.user_metadata?.full_name || user.user_metadata?.name || null
         );
       }
-      fetchNotes();
+      fetchNotes(); // grab all notes associated with user
     };
     init();
   }, []);
 
+  // fetch all notes from Supabase backend
   const fetchNotes = async () => {
     const {
       data: { user },
@@ -55,13 +56,15 @@ export default function NotesPage() {
     if (!error && data) setNotes(data);
   };
 
+  // set all attributes of selected note after being edited 
   const handleSelectNote = (note: Note) => {
     setSelectedNoteId(note.id);
     setTitle(note.title);
     setContent(note.content);
-    setIsEditing(false);
+    setIsEditing(false); // turn editing off
   };
 
+  // clear editor state for new note and allow editing for this note 
   const handleNewNote = () => {
     setSelectedNoteId(null);
     setTitle("");
@@ -69,18 +72,22 @@ export default function NotesPage() {
     setIsEditing(true);
   };
 
+  // call saveNote from noteActions to insert/update in Supabase
   const handleSave = async () => {
-    const {
+    const { // get user from Supabase
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) return;
 
+    // if selected note exists, update to Suapabase
+    // otherwise, insert new note
     await saveNote(user.id, title, content, selectedNoteId ?? undefined);
     handleNewNote();
     fetchNotes();
     setIsEditing(false);
   };
 
+  // delete from Supabase
   const handleDelete = async () => {
     if (!selectedNoteId) return;
     await deleteNote(selectedNoteId);
@@ -93,6 +100,7 @@ export default function NotesPage() {
     location.reload();
   };
 
+  // generate .json token for command line usage
   const handleExport = async () => {
     const session = (await supabase.auth.getSession()).data.session;
     if (!session) return;
@@ -163,7 +171,7 @@ export default function NotesPage() {
                       }
                       setIsEditing(false);
                     }}
-                   className="px-3 py-1 rounded-md bg-gray-500 hover:bg-gray-800 transition text-sm text-gray-200"
+                    className="px-3 py-1 rounded-md bg-gray-500 hover:bg-gray-800 transition text-sm text-gray-200"
                   >
                     Cancel
                   </button>
@@ -171,7 +179,7 @@ export default function NotesPage() {
                     <button
                       onClick={handleDelete}
                       className="px-3 py-1 rounded-md bg-red-700 hover:bg-red-900 transition text-sm text-gray-200"
-                  >
+                    >
                       Delete
                     </button>
                   )}
@@ -193,7 +201,7 @@ export default function NotesPage() {
                   <button
                     onClick={handleDelete}
                     className="px-3 py-1 rounded-md bg-red-700 hover:bg-red-900 transition text-sm text-gray-200"
-          >
+                  >
                     Delete
                   </button>
                 </div>
@@ -208,41 +216,40 @@ export default function NotesPage() {
 
         {/* Notes List (RIGHT sidebar) */}
         <aside className="w-64 bg-gray-850 p-4 border-l border-gray-700 rounded-l-lg overflow-y-auto">
-  <div className="flex items-center justify-between mb-4">
-    <h2 className="font-bold text-lg">My Notes</h2>
-    <button
-      onClick={() => {
-        handleNewNote();
-        setIsEditing(true);
-      }}
-      className="px-3 py-1 rounded-md bg-yellow-500 hover:bg-yellow-600 transition text-sm text-gray-900"
-      title="Create new note"
-      aria-label="Create new note"
-    >
-      New
-    </button>
-  </div>
-  <ul className="space-y-2">
-    {notes.map((note) => (
-      <li
-        key={note.id}
-        onClick={() => {
-          handleSelectNote(note);
-          setIsEditing(false);
-        }}
-        className={`px-3 py-2 rounded cursor-pointer truncate
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-lg">My Notes</h2>
+            <button
+              onClick={() => {
+                handleNewNote();
+                setIsEditing(true);
+              }}
+              className="px-3 py-1 rounded-md bg-yellow-500 hover:bg-yellow-600 transition text-sm text-gray-900"
+              title="Create new note"
+              aria-label="Create new note"
+            >
+              New
+            </button>
+          </div>
+          <ul className="space-y-2">
+            {notes.map((note) => (
+              <li
+                key={note.id}
+                onClick={() => {
+                  handleSelectNote(note);
+                  setIsEditing(false);
+                }}
+                className={`px-3 py-2 rounded cursor-pointer truncate
                   ${
                     selectedNoteId === note.id
                       ? "bg-gray-700 text-gray-100"
                       : "hover:bg-gray-700 text-gray-300"
                   }`}
-      >
-        {note.title || "Untitled"}
-      </li>
-    ))}
-  </ul>
-</aside>
-
+              >
+                {note.title || "Untitled"}
+              </li>
+            ))}
+          </ul>
+        </aside>
       </div>
     </Layout>
   );
