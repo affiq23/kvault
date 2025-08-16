@@ -57,14 +57,19 @@ export default function UploadPage() {
         throw new Error("Upload failed");
       }
 
-      setMessage(`Successfully uploaded ${file.name}`);
+        setMessage(`Successfully uploaded ${file.name}`);
       setFile(null);
-    } catch (err: any) {
-      setMessage(err.message || "Upload failed");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setMessage(err.message);
+      } else {
+        setMessage("Upload failed");
+      }
     } finally {
       setUploading(false);
     }
   };
+
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
