@@ -72,7 +72,7 @@ export async function POST(req: NextRequest) {
 
     // create unique filename structure
     // creates structure like:
-     // user-uploads/
+    // user-uploads/
     //   ├── user-123/
     //   │   ├── 1641234567890_document.pdf
     //   │   └── 1641234568123_presentation.pptx
@@ -135,11 +135,11 @@ export async function POST(req: NextRequest) {
       url: urlData.publicUrl, // direct access URL
       userId: user.id,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Upload error:", err);
     return NextResponse.json(
       {
-        error: err.message || "Upload failed",
+        error: err instanceof Error ? err.message : "Upload failed",
       },
       { status: 500 }
     );

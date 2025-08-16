@@ -71,9 +71,6 @@ export default function UploadPage() {
         const errorData = await res.json();
         throw new Error(errorData.error || "Upload failed");
       }
-
-      // parse response for later
-      const result = await res.json();
       
       setMessage(`Successfully uploaded ${file.name}`);
       setFile(null);
