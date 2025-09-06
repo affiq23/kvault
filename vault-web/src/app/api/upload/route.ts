@@ -1,79 +1,97 @@
 // src/app/api/upload/route.ts
+// handles file uploads and extraction
 import { createServerClient } from "../../../../lib/supabaseClient";
 import { NextRequest, NextResponse } from "next/server";
-import type {
-  TextItem,
-  TextMarkedContent,
-} from "pdfjs-dist/types/src/display/api";
+import type { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
+import { getDocument } from "pdfjs-serverless";
 
 // function to extract text using pdfjs-serverless
-async function extractTextFromFile(
+// uses raw file contents and returns extracted text
+export async function extractTextFromFile(
   fileData: Buffer,
   fileExtension: string
 ): Promise<string> {
   console.log(`Starting text extraction for ${fileExtension} file...`);
 
+  // PDF extraction
   try {
     if (fileExtension === ".pdf") {
-      // use pdfjs-serverless
-      const { resolvePDFJS } = await import("pdfjs-serverless");
-
       console.log("Loading PDF with pdfjs-serverless...");
 
-      // get PDF.js library
-      const { getDocument } = await resolvePDFJS();
-
-      // load PDF document
+      // store file content in doc object and standarize text font
       const data = new Uint8Array(fileData);
       const doc = await getDocument({ data, useSystemFonts: true }).promise;
 
+      // create object to store all text content
       console.log(`PDF loaded successfully. Pages: ${doc.numPages}`);
+      const allText: string[] = [];
 
-      const allText = [];
-
-      // extract text from each page
+      // loop through pages 
       for (let i = 1; i <= doc.numPages; i++) {
         try {
           console.log(`Processing page ${i}...`);
           const page = await doc.getPage(i);
-          const textContent = await page.getTextContent();
+          const textContent = await page.getTextContent(); // get content on current page
+
+          // handle content safely; only add actual text, not marks or annotations
           const contents = textContent.items
-            .map((item: TextItem | TextMarkedContent) => {
-              if ("str" in item) {
-                return item.str;
-              }
-              return ""; // skip non-text items
-            })
+            .map((item: TextItem | TextMarkedContent) => ("str" in item ? item.str : ""))
             .join(" ");
-          allText.push(contents);
+          allText.push(contents); // add page content to object
         } catch (pageError) {
           console.error(`Error processing page ${i}:`, pageError);
           allText.push(`[Error extracting text from page ${i}]`);
         }
       }
 
+      // combine all text into one page
       const combinedText = allText.join("\n");
-      console.log(
-        `PDF extraction completed. Text length: ${combinedText.length}`
-      );
-      console.log(`Preview: ${combinedText.substring(0, 200)}...`);
+      console.log(`PDF extraction completed. Text length: ${combinedText.length}`);
+      return combinedText.trim() || "[PDF processed successfully but no readable text found]";
 
-      return (
-        combinedText.trim() ||
-        "[PDF processed successfully but no readable text found]"
-      );
+      // TXT extraction
     } else if (fileExtension === ".txt" || fileExtension === ".md") {
       console.log("Processing text file...");
       const text = fileData.toString("utf-8");
       console.log(`Text file processed. Length: ${text.length}`);
       return text;
+
+      // PPTX extraction
     } else if (fileExtension === ".pptx") {
       console.log("Processing PowerPoint file...");
-      // need to add in PPTX extraction later using a different library
-      return "[PowerPoint file uploaded successfully - text extraction feature coming soon]";
-    } else {
-      return "[File type not supported for text extraction]";
+
+      try {
+        // use dynamic import to load module when needed
+        const PptxParser = (await import("node-pptx-parser")).default;
+        const fs = await import("fs/promises");
+        const path = await import("path");
+        const os = await import("os");
+
+        // create temp file to write buffer 
+        // give it safe temp folder and unique name
+        const tempFilePath = path.join(os.tmpdir(), `upload_${Date.now()}.pptx`);
+        await fs.writeFile(tempFilePath, fileData);
+
+        // create parser and array of slide objects representing text in that slide
+        const parser = new PptxParser(tempFilePath);
+        const slides = await parser.extractText();
+
+        // combine text on slide into string, then combine all slides into one big string
+        const allText = slides.map((slide) => slide.text.join("\n")).join("\n\n");
+        await fs.unlink(tempFilePath); // delete temp file
+
+        console.log(`PPTX text extraction completed. Length: ${allText.length}`);
+        return allText || "[PPTX processed but no readable text found]";
+
+      } catch (pptxError) {
+        console.error("PPTX extraction error:", pptxError);
+        return "[PowerPoint extraction failed]";
+      }
     }
+
+    // fallback for unsupported file types
+    return `[File type ${fileExtension} is not supported for text extraction]`;
+
   } catch (error) {
     console.error(`Error extracting text from ${fileExtension}:`, error);
     return `[${fileExtension} file uploaded successfully - text extraction failed: ${
@@ -81,6 +99,7 @@ async function extractTextFromFile(
     }]`;
   }
 }
+
 
 export async function POST(req: NextRequest) {
   try {
