@@ -2,66 +2,76 @@
 import { createServerClient } from "../../../../lib/supabaseClient";
 import { NextRequest, NextResponse } from "next/server";
 
-// function to extract text using pdfjs-serverless 
-async function extractTextFromFile(fileData: Buffer, fileExtension: string): Promise<string> {
+
+// function to extract text using pdfjs-serverless
+async function extractTextFromFile(
+  fileData: Buffer,
+  fileExtension: string
+): Promise<string> {
   console.log(`Starting text extraction for ${fileExtension} file...`);
-  
+
   try {
     if (fileExtension === ".pdf") {
       // use pdfjs-serverless
       const { resolvePDFJS } = await import("pdfjs-serverless");
-      
-      console.log('Loading PDF with pdfjs-serverless...');
-      
+
+      console.log("Loading PDF with pdfjs-serverless...");
+
       // get PDF.js library
       const { getDocument } = await resolvePDFJS();
-      
+
       // load PDF document
       const data = new Uint8Array(fileData);
       const doc = await getDocument({ data, useSystemFonts: true }).promise;
-      
+
       console.log(`PDF loaded successfully. Pages: ${doc.numPages}`);
-      
+
       const allText = [];
-      
+
       // extract text from each page
       for (let i = 1; i <= doc.numPages; i++) {
         try {
           console.log(`Processing page ${i}...`);
           const page = await doc.getPage(i);
           const textContent = await page.getTextContent();
-          const contents = textContent.items.map((item: any) => item.str).join(" ");
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const contents = textContent.items
+            .map((item: any) => item.str)
+            .join(" ");
           allText.push(contents);
         } catch (pageError) {
           console.error(`Error processing page ${i}:`, pageError);
           allText.push(`[Error extracting text from page ${i}]`);
         }
       }
-      
+
       const combinedText = allText.join("\n");
-      console.log(`PDF extraction completed. Text length: ${combinedText.length}`);
+      console.log(
+        `PDF extraction completed. Text length: ${combinedText.length}`
+      );
       console.log(`Preview: ${combinedText.substring(0, 200)}...`);
-      
-      return combinedText.trim() || '[PDF processed successfully but no readable text found]';
-      
+
+      return (
+        combinedText.trim() ||
+        "[PDF processed successfully but no readable text found]"
+      );
     } else if (fileExtension === ".txt" || fileExtension === ".md") {
-      console.log('Processing text file...');
+      console.log("Processing text file...");
       const text = fileData.toString("utf-8");
       console.log(`Text file processed. Length: ${text.length}`);
       return text;
-      
     } else if (fileExtension === ".pptx") {
-      console.log('Processing PowerPoint file...');
+      console.log("Processing PowerPoint file...");
       // need to add in PPTX extraction later using a different library
-      return '[PowerPoint file uploaded successfully - text extraction feature coming soon]';
-      
+      return "[PowerPoint file uploaded successfully - text extraction feature coming soon]";
     } else {
-      return '[File type not supported for text extraction]';
+      return "[File type not supported for text extraction]";
     }
-    
   } catch (error) {
     console.error(`Error extracting text from ${fileExtension}:`, error);
-    return `[${fileExtension} file uploaded successfully - text extraction failed: ${error instanceof Error ? error.message : 'unknown error'}]`;
+    return `[${fileExtension} file uploaded successfully - text extraction failed: ${
+      error instanceof Error ? error.message : "unknown error"
+    }]`;
   }
 }
 
@@ -158,18 +168,23 @@ export async function POST(req: NextRequest) {
 
     // extract text from uploaded file using pdfjs-serverless
     let extractedText: string | null = null;
-    
-    console.log(`Starting text extraction for ${fileExtension} file: ${file.name}`);
-    
+
+    console.log(
+      `Starting text extraction for ${fileExtension} file: ${file.name}`
+    );
+
     try {
       const buffer = Buffer.from(fileData);
       extractedText = await extractTextFromFile(buffer, fileExtension);
-      
-      console.log(`Text extraction completed. Final length: ${extractedText.length}`);
-      
+
+      console.log(
+        `Text extraction completed. Final length: ${extractedText.length}`
+      );
     } catch (extractError) {
       console.error("Text extraction error:", extractError);
-      extractedText = `[Text extraction failed: ${extractError instanceof Error ? extractError.message : 'Unknown error'}]`;
+      extractedText = `[Text extraction failed: ${
+        extractError instanceof Error ? extractError.message : "Unknown error"
+      }]`;
     }
 
     // save file metadata to database for easy indexing
@@ -206,7 +221,9 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       extractedText: extractedText || undefined,
       fileType: fileExtension,
-      textExtractionSuccess: extractedText ? !extractedText.includes('[') : false,
+      textExtractionSuccess: extractedText
+        ? !extractedText.includes("[")
+        : false,
     });
   } catch (err: unknown) {
     console.error("Upload error:", err);
