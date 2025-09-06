@@ -2,12 +2,15 @@
 // handles file uploads and extraction
 import { createServerClient } from "../../../../lib/supabaseClient";
 import { NextRequest, NextResponse } from "next/server";
-import type { TextItem, TextMarkedContent } from "pdfjs-dist/types/src/display/api";
+import type {
+  TextItem,
+  TextMarkedContent,
+} from "pdfjs-dist/types/src/display/api";
 import { getDocument } from "pdfjs-serverless";
 
 // function to extract text using pdfjs-serverless
 // uses raw file contents and returns extracted text
-export async function extractTextFromFile(
+async function extractTextFromFile(
   fileData: Buffer,
   fileExtension: string
 ): Promise<string> {
@@ -26,7 +29,7 @@ export async function extractTextFromFile(
       console.log(`PDF loaded successfully. Pages: ${doc.numPages}`);
       const allText: string[] = [];
 
-      // loop through pages 
+      // loop through pages
       for (let i = 1; i <= doc.numPages; i++) {
         try {
           console.log(`Processing page ${i}...`);
@@ -35,7 +38,9 @@ export async function extractTextFromFile(
 
           // handle content safely; only add actual text, not marks or annotations
           const contents = textContent.items
-            .map((item: TextItem | TextMarkedContent) => ("str" in item ? item.str : ""))
+            .map((item: TextItem | TextMarkedContent) =>
+              "str" in item ? item.str : ""
+            )
             .join(" ");
           allText.push(contents); // add page content to object
         } catch (pageError) {
@@ -46,8 +51,13 @@ export async function extractTextFromFile(
 
       // combine all text into one page
       const combinedText = allText.join("\n");
-      console.log(`PDF extraction completed. Text length: ${combinedText.length}`);
-      return combinedText.trim() || "[PDF processed successfully but no readable text found]";
+      console.log(
+        `PDF extraction completed. Text length: ${combinedText.length}`
+      );
+      return (
+        combinedText.trim() ||
+        "[PDF processed successfully but no readable text found]"
+      );
 
       // TXT extraction
     } else if (fileExtension === ".txt" || fileExtension === ".md") {
@@ -67,9 +77,12 @@ export async function extractTextFromFile(
         const path = await import("path");
         const os = await import("os");
 
-        // create temp file to write buffer 
+        // create temp file to write buffer
         // give it safe temp folder and unique name
-        const tempFilePath = path.join(os.tmpdir(), `upload_${Date.now()}.pptx`);
+        const tempFilePath = path.join(
+          os.tmpdir(),
+          `upload_${Date.now()}.pptx`
+        );
         await fs.writeFile(tempFilePath, fileData);
 
         // create parser and array of slide objects representing text in that slide
@@ -77,12 +90,15 @@ export async function extractTextFromFile(
         const slides = await parser.extractText();
 
         // combine text on slide into string, then combine all slides into one big string
-        const allText = slides.map((slide) => slide.text.join("\n")).join("\n\n");
+        const allText = slides
+          .map((slide) => slide.text.join("\n"))
+          .join("\n\n");
         await fs.unlink(tempFilePath); // delete temp file
 
-        console.log(`PPTX text extraction completed. Length: ${allText.length}`);
+        console.log(
+          `PPTX text extraction completed. Length: ${allText.length}`
+        );
         return allText || "[PPTX processed but no readable text found]";
-
       } catch (pptxError) {
         console.error("PPTX extraction error:", pptxError);
         return "[PowerPoint extraction failed]";
@@ -91,7 +107,6 @@ export async function extractTextFromFile(
 
     // fallback for unsupported file types
     return `[File type ${fileExtension} is not supported for text extraction]`;
-
   } catch (error) {
     console.error(`Error extracting text from ${fileExtension}:`, error);
     return `[${fileExtension} file uploaded successfully - text extraction failed: ${
@@ -99,7 +114,6 @@ export async function extractTextFromFile(
     }]`;
   }
 }
-
 
 export async function POST(req: NextRequest) {
   try {
