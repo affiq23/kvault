@@ -1,7 +1,10 @@
 // src/app/api/upload/route.ts
 import { createServerClient } from "../../../../lib/supabaseClient";
 import { NextRequest, NextResponse } from "next/server";
-
+import type {
+  TextItem,
+  TextMarkedContent,
+} from "pdfjs-dist/types/src/display/api";
 
 // function to extract text using pdfjs-serverless
 async function extractTextFromFile(
@@ -34,9 +37,13 @@ async function extractTextFromFile(
           console.log(`Processing page ${i}...`);
           const page = await doc.getPage(i);
           const textContent = await page.getTextContent();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const contents = textContent.items
-            .map((item: any) => item.str)
+            .map((item: TextItem | TextMarkedContent) => {
+              if ("str" in item) {
+                return item.str;
+              }
+              return ""; // skip non-text items
+            })
             .join(" ");
           allText.push(contents);
         } catch (pageError) {
